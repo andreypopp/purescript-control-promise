@@ -70,6 +70,12 @@ resolveAsync action = resolveAsync' compute
     report (Right r) = resolve r
     report (Left err) = reject err
 
+-- Execute Eff actions inside Promise
+--
+-- do
+--   liftEff $ print "Wait a sec..."
+--   delay 1000
+--   liftEff $ print "Here we go"
 foreign import liftEff
   "function liftEff(f) { \
   \  return new promiseImpl(function(resolve) { \
