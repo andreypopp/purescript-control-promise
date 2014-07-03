@@ -1,0 +1,24 @@
+{
+  "name": "purescript-control-promise",
+  "version": "0.1.0",
+  "authors": [
+    "Andrey Popp <8mayday@gmail.com>"
+  ],
+  "description": "Promises for PureScript",
+  "main": "./src/Control/Promise.purs",
+  "keywords": [
+    "purescript",
+    "promise"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "purescript-either": "~0.1.2"
+  }
+}
