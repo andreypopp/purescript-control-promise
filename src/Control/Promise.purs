@@ -44,6 +44,14 @@ foreign import reject
   "function reject(err) { return promiseImpl.reject(err); }"
   :: forall a. String -> Promise a
 
+foreign import resolveEff
+  "function make(compute) { \
+  \  return new promiseImpl(function(resolve) { \
+  \    compute(resolve)(reject)();
+  \  }); \
+  \}"
+  :: forall a b eff. ((a -> Unit) -> (String -> Unit) -> Eff (eff) b) -> Promise a
+
 foreign import liftEff
   "function liftEff(f) { \
   \  return new promiseImpl(function(resolve) { \
@@ -62,9 +70,15 @@ foreign import runPromise
   \}"
   :: forall a b eff eff2. Promise a -> (Either a String -> Eff eff b) -> Eff eff2 {}
 
+-- Delay for a numner of milliseconds
 foreign import delay
   "var delay = promiseImpl.delay;"
   :: Number -> Promise Unit
+
+-- Delay value for a numner of milliseconds
+foreign import delayValue
+  "var delayValue = promiseImpl.delay;"
+  :: forall a. a -> Number -> Promise a
 
 instance promiseFunctor :: Functor Promise where
   (<$>) = fmap
@@ -79,14 +93,3 @@ instance promiseBind :: Bind Promise where
   (>>=) = bind
 
 instance promiseMonad :: Monad Promise
-
-greet message = do
-  liftEff $ print "Wait a sec..."
-  delay 1000
-  liftEff $ print ("Hello, " ++ message)
-  return "ok"
-
-main = runPromise (greet "John") handler
-    where
-  handler (Right result) = print ("result: " ++ result)
-  handler (Left err) = print ("oops, error happened: " ++ err)
