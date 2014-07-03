@@ -44,13 +44,31 @@ foreign import reject
   "function reject(err) { return promiseImpl.reject(err); }"
   :: forall a. String -> Promise a
 
-foreign import resolveEff
+foreign import resolveAsync'
   "function make(compute) { \
-  \  return new promiseImpl(function(resolve) { \
-  \    compute(resolve)(reject)();
+  \  return new promiseImpl(function(resolve, reject) { \
+  \    compute(resolve)(reject)(); \
   \  }); \
   \}"
   :: forall a b eff. ((a -> Unit) -> (String -> Unit) -> Eff (eff) b) -> Promise a
+
+-- Make a promise from a computation which reports a result via a callback.
+--
+-- xhrPromise url = resolveAsync doXHR
+--     where
+--   doXHR report = do
+--     req <- xhr url
+--     onResult req \result -> report (Right result)
+--     onError req \error -> report (Left error)
+--
+resolveAsync :: forall a eff b. ((Either String a -> Unit) -> Eff (eff) b) -> Promise a
+resolveAsync action = resolveAsync' compute
+    where
+  compute resolve reject = do
+    action report
+      where
+    report (Right r) = resolve r
+    report (Left err) = reject err
 
 foreign import liftEff
   "function liftEff(f) { \
@@ -68,7 +86,7 @@ foreign import runPromise
   \      .catch(function(e) { handler(PS.Data_Either.Left(e))(); }); \
   \  }\
   \}"
-  :: forall a b eff eff2. Promise a -> (Either a String -> Eff eff b) -> Eff eff2 {}
+  :: forall a b eff eff2. Promise a -> (Either String a -> Eff eff b) -> Eff eff2 {}
 
 -- Delay for a numner of milliseconds
 foreign import delay
